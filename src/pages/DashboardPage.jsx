@@ -39,7 +39,7 @@ export default function DashboardPage() {
     };
   }, [activeModal]);
 
-  // Handle Capacitor native hardware back button presses
+  // Handle global custom back button events from App shell (modal/prompt closures)
   useEffect(() => {
     let listenerPromise = null;
 
@@ -84,7 +84,7 @@ export default function DashboardPage() {
       // High resistance: scale diffY by 0.3
       const distance = Math.min(100, diffY * 0.3);
       setPullDistance(distance);
-      
+
       if (e.cancelable) {
         e.preventDefault();
       }
@@ -93,12 +93,12 @@ export default function DashboardPage() {
 
   const handleTouchEnd = () => {
     if (!isAtTop.current || isRefreshing || activeModal) return;
-    
+
     // High distance threshold to trigger sync: 90px
     if (pullDistance >= 90) {
       setIsRefreshing(true);
       setPullDistance(70); // Hold it translated down during sync
-      
+
       setTimeout(() => {
         setIsRefreshing(false);
         setPullDistance(0);
@@ -560,11 +560,10 @@ export default function DashboardPage() {
             <p className="text-xs text-slate-500">Track and update your daily SFA client assignments.</p>
             <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
               {tasksList.map((t) => (
-                <label 
-                  key={t.id} 
-                  className={`p-3 bg-white border rounded-xl shadow-sm flex items-start space-x-3 cursor-pointer transition-all duration-200 ${
-                    t.done ? 'border-slate-100 opacity-60' : 'border-slate-200 hover:border-brand-200'
-                  }`}
+                <label
+                  key={t.id}
+                  className={`p-3 bg-white border rounded-xl shadow-sm flex items-start space-x-3 cursor-pointer transition-all duration-200 ${t.done ? 'border-slate-100 opacity-60' : 'border-slate-200 hover:border-brand-200'
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -595,7 +594,7 @@ export default function DashboardPage() {
         return (
           <form onSubmit={handleSurveySubmit} className="space-y-4">
             <p className="text-xs text-slate-500">Submit local store stock and satisfaction feedback to HQ.</p>
-            
+
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Select Mapped Partner</label>
               <select
@@ -681,7 +680,7 @@ export default function DashboardPage() {
             {/* Logging Form */}
             <form onSubmit={handleAddExpense} className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3.5">
               <h4 className="text-xs font-extrabold text-slate-700 uppercase tracking-wide">Log Daily Allowance Claim</h4>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Category</label>
@@ -696,7 +695,7 @@ export default function DashboardPage() {
                     <option value="Stationery / Courier">Stationery / Courier</option>
                   </select>
                 </div>
-                
+
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Amount (₹)</label>
                   <input
@@ -731,11 +730,10 @@ export default function DashboardPage() {
                     </div>
                     <div className="text-right">
                       <span className="font-bold text-slate-800 block">{exp.amount}</span>
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-bold mt-1 uppercase ${
-                        exp.status === 'Approved'
+                      <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-bold mt-1 uppercase ${exp.status === 'Approved'
                           ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                           : 'bg-amber-50 text-amber-600 border border-amber-100'
-                      }`}>
+                        }`}>
                         {exp.status}
                       </span>
                     </div>
@@ -773,21 +771,20 @@ export default function DashboardPage() {
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className={`bg-slate-50 text-slate-800 min-h-screen p-4 sm:p-6 relative font-sans w-full pb-16 transition-all duration-300 ${
-        activeModal ? 'overflow-hidden' : 'overflow-y-auto'
-      }`}
+      className={`bg-slate-50 text-slate-800 min-h-screen p-4 sm:p-6 relative font-sans w-full pb-16 transition-all duration-300 ${activeModal ? 'overflow-hidden' : 'overflow-y-auto'
+        }`}
     >
 
       {/* Background decorative grids */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f080_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f080_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0"></div>
 
       {/* Syncing/Refreshing Indicator Overlay */}
-      <div 
+      <div
         className="absolute left-0 right-0 flex justify-center pointer-events-none transition-all duration-300"
         style={{
           top: isRefreshing ? '24px' : `${pullDistance - 50}px`,
@@ -808,12 +805,12 @@ export default function DashboardPage() {
           ) : (
             <>
               {/* Pulling progression icon/arrow */}
-              <svg 
-                className="h-4 w-4 text-brand-500 transition-transform duration-200" 
+              <svg
+                className="h-4 w-4 text-brand-500 transition-transform duration-200"
                 style={{ transform: `rotate(${pullDistance * 3.6}deg)` }}
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
                 strokeWidth="3"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -827,7 +824,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Responsive Wrapper */}
-      <div 
+      <div
         className="max-w-[480px] mx-auto relative z-10 space-y-6"
         style={{
           transform: `translateY(${pullDistance}px)`,
@@ -910,7 +907,7 @@ export default function DashboardPage() {
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-scale-in">
           {/* Backdrop click to close */}
           <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-xs" onClick={() => setShowLogoutConfirm(false)}></div>
-          
+
           {/* Modal card */}
           <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-2xl max-w-[340px] w-full text-center space-y-4 relative z-10 animate-fade-in">
             <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
@@ -918,12 +915,12 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
               </svg>
             </div>
-            
+
             <div className="space-y-1">
               <h3 className="text-sm font-extrabold text-slate-800">Confirm Logout</h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">Are you sure you want to end your current SFA session? Any unsaved check-in tracking logs will be finalized.</p>
             </div>
-            
+
             <div className="flex space-x-3 pt-2">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
