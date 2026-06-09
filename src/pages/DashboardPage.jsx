@@ -34,6 +34,30 @@ export default function DashboardPage() {
     };
   }, [activeModal]);
 
+  // Handle Capacitor native hardware back button presses
+  useEffect(() => {
+    const Capacitor = window.Capacitor;
+    if (Capacitor && Capacitor.Plugins && Capacitor.Plugins.App) {
+      const App = Capacitor.Plugins.App;
+      
+      const listenerPromise = App.addListener('backButton', (data) => {
+        if (activeModal) {
+          setActiveModal(null);
+        } else if (showLogoutConfirm) {
+          setShowLogoutConfirm(false);
+        } else if (location.pathname === '/dashboard/user') {
+          navigate('/dashboard');
+        } else {
+          App.exitApp();
+        }
+      });
+
+      return () => {
+        listenerPromise.then(handle => handle.remove());
+      };
+    }
+  }, [activeModal, showLogoutConfirm, location.pathname, navigate]);
+
   const handleTouchStart = (e) => {
     if (isRefreshing || activeModal) return;
     if (containerRef.current && containerRef.current.scrollTop === 0) {
