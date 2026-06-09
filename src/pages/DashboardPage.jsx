@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -39,11 +41,10 @@ export default function DashboardPage() {
 
   // Handle Capacitor native hardware back button presses
   useEffect(() => {
-    const Capacitor = window.Capacitor;
-    if (Capacitor && Capacitor.Plugins && Capacitor.Plugins.App) {
-      const App = Capacitor.Plugins.App;
-      
-      const listenerPromise = App.addListener('backButton', (data) => {
+    let listenerPromise = null;
+
+    if (Capacitor.isNativePlatform()) {
+      listenerPromise = App.addListener('backButton', (data) => {
         if (activeModal) {
           setActiveModal(null);
         } else if (showLogoutConfirm) {
@@ -54,11 +55,13 @@ export default function DashboardPage() {
           App.exitApp();
         }
       });
-
-      return () => {
-        listenerPromise.then(handle => handle.remove());
-      };
     }
+
+    return () => {
+      if (listenerPromise) {
+        listenerPromise.then(handle => handle.remove());
+      }
+    };
   }, [activeModal, showLogoutConfirm, location.pathname, navigate]);
 
   const handleTouchStart = (e) => {
