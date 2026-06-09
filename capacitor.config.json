@@ -1,0 +1,6 @@
+{
+  "appId": "com.plumberapp.app",
+  "appName": "Plumber App",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

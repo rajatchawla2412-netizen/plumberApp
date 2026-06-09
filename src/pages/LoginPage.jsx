@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+
   // Application view states
   const [step, setStep] = useState('phone'); // 'phone' | 'otp' | 'success'
   const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(30);
   const [resendActive, setResendActive] = useState(false);
@@ -14,13 +17,14 @@ export default function LoginPage() {
   const [slideAnimClass, setSlideAnimClass] = useState(''); 
   const [shakeActive, setShakeActive] = useState(false);
   const [phoneError, setPhoneError] = useState('');
+  const [otpError, setOtpError] = useState('');
 
   // Refs for focusing inputs
   const phoneInputRef = useRef(null);
-  const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const otpRefs = useRef([]);
   const timerRef = useRef(null);
 
-  // Focus helper on mount
+  // Focus helper on mount or step change
   useEffect(() => {
     if (activeStep === 'phone' && phoneInputRef.current) {
       phoneInputRef.current.focus();
@@ -76,7 +80,7 @@ export default function LoginPage() {
       
       // Focus first OTP field
       setTimeout(() => {
-        if (otpRefs[0].current) otpRefs[0].current.focus();
+        otpRefs.current[0]?.focus();
       }, 400);
     }, 800);
   };
@@ -88,12 +92,11 @@ export default function LoginPage() {
     const newOtp = [...otp];
     newOtp[index] = cleanVal;
     setOtp(newOtp);
+    setOtpError('');
 
     // Auto-focus next input box on entry
-    if (cleanVal && index < 3) {
-      if (otpRefs[index + 1].current) {
-        otpRefs[index + 1].current.focus();
-      }
+    if (cleanVal && index < 5) {
+      otpRefs.current[index + 1]?.focus();
     }
   };
 
@@ -104,9 +107,7 @@ export default function LoginPage() {
         const newOtp = [...otp];
         newOtp[index - 1] = '';
         setOtp(newOtp);
-        if (otpRefs[index - 1].current) {
-          otpRefs[index - 1].current.focus();
-        }
+        otpRefs.current[index - 1]?.focus();
       } else {
         const newOtp = [...otp];
         newOtp[index] = '';
@@ -117,22 +118,18 @@ export default function LoginPage() {
 
   const handleOtpPaste = (e) => {
     e.preventDefault();
-    const pasteData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
+    const pasteData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     
     if (pasteData) {
       const newOtp = [...otp];
-      for (let i = 0; i < 4; i++) {
-        if (pasteData[i]) {
-          newOtp[i] = pasteData[i];
-        }
+      for (let i = 0; i < 6; i++) {
+        newOtp[i] = pasteData[i] || '';
       }
       setOtp(newOtp);
       
-      // Focus last filled input
-      const focusIndex = Math.min(pasteData.length - 1, 3);
-      if (otpRefs[focusIndex].current) {
-        otpRefs[focusIndex].current.focus();
-      }
+      // Focus the next empty slot or the last slot
+      const focusIndex = Math.min(pasteData.length, 5);
+      otpRefs.current[focusIndex]?.focus();
     }
   };
 
@@ -164,13 +161,13 @@ export default function LoginPage() {
 
   // Resend trigger Action
   const handleResend = () => {
-    setOtp(['', '', '', '']);
+    setOtp(['', '', '', '', '', '']);
     setLoading(true);
 
     setTimeout(() => {
       setLoading(false);
       startTimer();
-      if (otpRefs[0].current) otpRefs[0].current.focus();
+      otpRefs.current[0]?.focus();
     }, 800);
   };
 
@@ -181,11 +178,28 @@ export default function LoginPage() {
     if (!isOtpComplete) return;
 
     setLoading(true);
+    setOtpError('');
 
     // Simulate OTP Validation (1200ms latency)
     setTimeout(() => {
       setLoading(false);
-      transitionToStep('success');
+      const otpCode = otp.join('');
+      if (otpCode === '123456') {
+        transitionToStep('success');
+        
+        // Wait for transition animation to complete before redirecting
+        setTimeout(() => {
+          navigate('/dashboard', { state: { phone } });
+        }, 1800);
+      } else {
+        setOtpError('Incorrect code. Please enter 123456 to log in.');
+        setOtp(['', '', '', '', '', '']); // clear OTP boxes
+        triggerInputShake();
+        // focus the first OTP input
+        setTimeout(() => {
+          otpRefs.current[0]?.focus();
+        }, 100);
+      }
     }, 1200);
   };
 
@@ -234,16 +248,16 @@ export default function LoginPage() {
         {/* Brand Logo / Badge - Minimalist */}
         <div className="flex flex-col items-center justify-center mb-8 animate-fade-in-down">
           <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center shadow-md mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="h-5 w-5 text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">Secure Access</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Plumber App</h1>
           <p className="text-xs text-slate-500 mt-1">Sign in with your mobile number</p>
         </div>
 
         {/* Slightly Translucent Minimalist Card */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-8 shadow-xl shadow-slate-200/40 relative overflow-hidden animate-fade-in">
+        <div className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 sm:p-8 shadow-xl shadow-slate-200/40 relative overflow-hidden animate-fade-in">
           
           {/* STEP 1: MOBILE NUMBER ENTRY */}
           {activeStep === 'phone' && (
@@ -283,7 +297,7 @@ export default function LoginPage() {
                       isPhoneValid ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
                     }`}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     </div>
                   </div>
@@ -297,7 +311,7 @@ export default function LoginPage() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">A 4-digit code will be sent to this number for identity verification.</p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">A 6-digit code will be sent to this number for identity verification.</p>
                 </div>
 
                 {/* Submit Button */}
@@ -349,12 +363,12 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center mb-4">Enter 4-Digit Code</label>
-                  <div className="flex items-center justify-center space-x-3">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center mb-4">Enter 6-Digit Code</label>
+                  <div className={`flex items-center justify-center space-x-1.5 sm:space-x-3 ${shakeActive ? 'shake' : ''}`}>
                     {otp.map((digit, idx) => (
                       <input 
                         key={idx}
-                        ref={otpRefs[idx]}
+                        ref={(el) => (otpRefs.current[idx] = el)}
                         type="text" 
                         pattern="[0-9]*" 
                         inputMode="numeric" 
@@ -364,10 +378,13 @@ export default function LoginPage() {
                         onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                         onPaste={idx === 0 ? handleOtpPaste : undefined}
                         disabled={loading}
-                        className="w-12 h-12 bg-white border border-slate-200 rounded-lg text-center text-lg font-bold text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all duration-200" 
+                        className="w-9 h-9 sm:w-12 sm:h-12 bg-white border border-slate-200 rounded-lg text-center text-sm sm:text-lg font-bold text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all duration-200" 
                       />
                     ))}
                   </div>
+                  {otpError && (
+                    <p className="text-xs text-rose-500 text-center mt-2 transition-all duration-200">{otpError}</p>
+                  )}
                 </div>
 
                 {/* Resend OTP and Timer */}
@@ -449,22 +466,22 @@ export default function LoginPage() {
         {/* Footer branding & copy - Minimalist */}
         <p className="text-center text-[10px] font-medium text-slate-400 mt-8 leading-normal">
           Secure 256-bit SSL encrypted connection.<br />
-          &copy; 2026 Enterprise Inc. All rights reserved.
+          &copy; 2026 Plumber App. All rights reserved.
         </p>
       </div>
 
       {/* Layered Minimalist SVG Wave Pattern in the center of the screen */}
       <div className="absolute top-1/2 left-0 right-0 w-full -translate-y-1/2 overflow-hidden leading-none z-0 pointer-events-none">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[180px]">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[260px]">
           {/* Wave Layer 1 */}
           <path 
             d="M0,60 C300,20 600,100 900,40 C1050,10 1150,30 1200,40 L1200,120 L0,120 Z" 
-            className="fill-brand-500/8 animate-wave-slow"
+            className="fill-brand-500/25 animate-wave-slow"
           ></path>
           {/* Wave Layer 2 */}
           <path 
             d="M0,40 C300,90 600,30 900,70 C1050,90 1150,70 1200,60 L1200,120 L0,120 Z" 
-            className="fill-brand-300/6 animate-wave-fast"
+            className="fill-brand-300/18 animate-wave-fast"
           ></path>
         </svg>
       </div>
