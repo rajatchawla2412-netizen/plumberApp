@@ -34,29 +34,23 @@ export default function DashboardPage() {
     };
   }, [activeModal]);
 
-  // Handle Capacitor native hardware back button presses
+  // Handle global custom back button events from App shell (modal/prompt closures)
   useEffect(() => {
-    const Capacitor = window.Capacitor;
-    if (Capacitor && Capacitor.Plugins && Capacitor.Plugins.App) {
-      const App = Capacitor.Plugins.App;
-      
-      const listenerPromise = App.addListener('backButton', (data) => {
-        if (activeModal) {
-          setActiveModal(null);
-        } else if (showLogoutConfirm) {
-          setShowLogoutConfirm(false);
-        } else if (location.pathname === '/dashboard/user') {
-          navigate('/dashboard');
-        } else {
-          App.exitApp();
-        }
-      });
+    const handleGlobalBack = (e) => {
+      if (activeModal) {
+        e.preventDefault(); // Intercept back action
+        setActiveModal(null);
+      } else if (showLogoutConfirm) {
+        e.preventDefault(); // Intercept back action
+        setShowLogoutConfirm(false);
+      }
+    };
 
-      return () => {
-        listenerPromise.then(handle => handle.remove());
-      };
-    }
-  }, [activeModal, showLogoutConfirm, location.pathname, navigate]);
+    window.addEventListener('appBackButton', handleGlobalBack);
+    return () => {
+      window.removeEventListener('appBackButton', handleGlobalBack);
+    };
+  }, [activeModal, showLogoutConfirm]);
 
   const handleTouchStart = (e) => {
     if (isRefreshing || activeModal) return;
