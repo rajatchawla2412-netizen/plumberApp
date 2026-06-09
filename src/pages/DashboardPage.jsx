@@ -13,6 +13,9 @@ export default function DashboardPage() {
     { date: '08 Jun 2026', checkIn: '08:55 AM', checkOut: '06:05 PM', status: 'Present' }
   ]);
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   // Pull-to-refresh states
   const [isPulling, setIsPulling] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -170,8 +173,7 @@ export default function DashboardPage() {
     return `+91 ${num.slice(0, 5)}-${num.slice(5)}`;
   };
 
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
