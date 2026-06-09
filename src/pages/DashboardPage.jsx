@@ -4,7 +4,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 export default function DashboardPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const userPhone = location.state?.phone || '';
+  const [userPhone] = useState(location.state?.phone || '');
 
   const [activeModal, setActiveModal] = useState(null); // null | SFA category id / shortcut id
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -81,6 +81,57 @@ export default function DashboardPage() {
     isAtTop.current = false;
   };
 
+  // Interactive Task List State
+  const [tasksList, setTasksList] = useState([
+    { id: 1, text: 'Collect signed dealer agreement from Sai Plumbing House', done: false },
+    { id: 2, text: 'Resolve pending parts return dispute at Garg Sanitation', done: true },
+    { id: 3, text: 'Deliver the Sapphire premium catalog to Apex Distributors', done: false },
+    { id: 4, text: 'Submit the weekend dealer meet report to the sales manager', done: false }
+  ]);
+
+  const toggleTask = (id) => {
+    setTasksList(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+  };
+
+  // Interactive Survey Feedback Form State
+  const [surveyFeedback, setSurveyFeedback] = useState({
+    dealerName: '',
+    satisfaction: '5',
+    remarks: ''
+  });
+
+  const handleSurveySubmit = (e) => {
+    e.preventDefault();
+    alert(`SFA Survey submitted successfully for dealer: ${surveyFeedback.dealerName}`);
+    setSurveyFeedback({ dealerName: '', satisfaction: '5', remarks: '' });
+    setActiveModal(null);
+  };
+
+  // Static Event Plan
+  const eventsList = [
+    { id: 1, title: 'North India SFA Dealer Conclave', date: '12 Jun 2026', time: '11:00 AM', location: 'Hotel Radisson Blue, Noida', attendees: '45 Dealers mapped' },
+    { id: 2, title: 'Sapphire Range Product Training', date: '15 Jun 2026', time: '02:30 PM', location: 'Apex Distributors Hub', attendees: '15 sales reps' },
+    { id: 3, title: 'Sanitation Expo & Vendor Showcase', date: '20 Jun 2026', time: '10:00 AM', location: 'Pragati Maidan, Delhi', attendees: 'Open Exhibition' }
+  ];
+
+  // Interactive Expenses State
+  const [expensesList, setExpensesList] = useState([
+    { id: 1, date: 'Today', category: 'Fuel / Travel', amount: '₹450.00', status: 'Approved' },
+    { id: 2, date: 'Yesterday', category: 'Dealer Lunch', amount: '₹1,200.00', status: 'Pending' },
+    { id: 3, date: '08 Jun 2026', category: 'Stationery / Prints', amount: '₹150.00', status: 'Approved' }
+  ]);
+  const [newExpense, setNewExpense] = useState({ category: 'Travel Allowance', amount: '' });
+  const handleAddExpense = (e) => {
+    e.preventDefault();
+    if (!newExpense.amount) return;
+    setExpensesList([
+      { id: Date.now(), date: 'Today', category: newExpense.category, amount: `₹${parseFloat(newExpense.amount).toFixed(2)}`, status: 'Pending' },
+      ...expensesList
+    ]);
+    setNewExpense({ category: 'Travel Allowance', amount: '' });
+    alert('Expense logged on SFA tracker! Approval pending.');
+  };
+
   // SFA Auth Guard
   useEffect(() => {
     if (!userPhone) {
@@ -95,8 +146,19 @@ export default function DashboardPage() {
     return `+91 ${num.slice(0, 5)}-${num.slice(5)}`;
   };
 
-  const handleLogout = () => {
-    navigate('/login');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutConfirm(false);
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      navigate('/login');
+    }, 1200);
   };
 
   // Mock Data for Customer Network
@@ -463,6 +525,198 @@ export default function DashboardPage() {
           </div>
         );
 
+      case 'tasks':
+        return (
+          <div className="space-y-4">
+            <p className="text-xs text-slate-500">Track and update your daily SFA client assignments.</p>
+            <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
+              {tasksList.map((t) => (
+                <label 
+                  key={t.id} 
+                  className={`p-3 bg-white border rounded-xl shadow-sm flex items-start space-x-3 cursor-pointer transition-all duration-200 ${
+                    t.done ? 'border-slate-100 opacity-60' : 'border-slate-200 hover:border-brand-200'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={t.done}
+                    onChange={() => toggleTask(t.id)}
+                    className="w-4.5 h-4.5 text-brand-600 border-slate-300 rounded focus:ring-brand-500/20 mt-0.5 cursor-pointer focus:outline-none"
+                  />
+                  <div className="flex-1">
+                    <span className={`text-xs font-semibold block leading-tight ${t.done ? 'line-through text-slate-400 font-medium' : 'text-slate-800'}`}>
+                      {t.text}
+                    </span>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="bg-slate-50 p-3.5 border border-slate-100 rounded-xl flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                Progress: {tasksList.filter(t => t.done).length} / {tasksList.length} done
+              </span>
+              <span className="text-[10px] bg-brand-50 text-brand-600 px-2 py-0.5 rounded font-bold border border-brand-100 uppercase">
+                Daily Assignment
+              </span>
+            </div>
+          </div>
+        );
+
+      case 'survey':
+        return (
+          <form onSubmit={handleSurveySubmit} className="space-y-4">
+            <p className="text-xs text-slate-500">Submit local store stock and satisfaction feedback to HQ.</p>
+            
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Select Mapped Partner</label>
+              <select
+                required
+                value={surveyFeedback.dealerName}
+                onChange={(e) => setSurveyFeedback({ ...surveyFeedback, dealerName: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 cursor-pointer"
+              >
+                <option value="">-- Choose Distributor/Dealer --</option>
+                <option value="Apex Distributors">Apex Distributors</option>
+                <option value="Garg Sanitation">Garg Sanitation & Tiles</option>
+                <option value="Metro Bath & Hardware">Metro Bath & Hardware</option>
+                <option value="Sai Plumbing House">Sai Plumbing House</option>
+                <option value="Modern Builders">Modern Builders & Hardware</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Stock Level Satisfaction</label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={surveyFeedback.satisfaction}
+                  onChange={(e) => setSurveyFeedback({ ...surveyFeedback, satisfaction: e.target.value })}
+                  className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                />
+                <span className="text-xs font-bold text-slate-700 bg-brand-50 border border-brand-100 px-2 py-0.5 rounded min-w-[32px] text-center">
+                  {surveyFeedback.satisfaction}/10
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Remarks & Market Competitor Notes</label>
+              <textarea
+                rows="3"
+                required
+                placeholder="Enter stock deficits, competitor pricing, or remarks..."
+                value={surveyFeedback.remarks}
+                onChange={(e) => setSurveyFeedback({ ...surveyFeedback, remarks: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 resize-none"
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs py-2.5 px-4 rounded-lg shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 cursor-pointer focus:outline-none"
+            >
+              Submit Market Feedback Survey
+            </button>
+          </form>
+        );
+
+      case 'event':
+        return (
+          <div className="space-y-4">
+            <p className="text-xs text-slate-500">Upcoming promotional meet plans and conclaves.</p>
+            <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+              {eventsList.map((ev) => (
+                <div key={ev.id} className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm space-y-2">
+                  <div className="flex justify-between items-start">
+                    <span className="text-xs font-bold text-slate-800 leading-tight block max-w-[200px]">{ev.title}</span>
+                    <span className="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold border border-indigo-100 shrink-0">
+                      {ev.date}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 space-y-0.5">
+                    <p>🕒 Time: {ev.time}</p>
+                    <p>📍 Location: {ev.location}</p>
+                    <p className="text-brand-600 font-semibold mt-1">👥 Target: {ev.attendees}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'expenses':
+        return (
+          <div className="space-y-5">
+            {/* Logging Form */}
+            <form onSubmit={handleAddExpense} className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3.5">
+              <h4 className="text-xs font-extrabold text-slate-700 uppercase tracking-wide">Log Daily Allowance Claim</h4>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Category</label>
+                  <select
+                    value={newExpense.category}
+                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                    className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 cursor-pointer"
+                  >
+                    <option value="Travel Allowance">Travel Allowance</option>
+                    <option value="Food & Meal">Food & Meal</option>
+                    <option value="Client Lodging">Client Lodging</option>
+                    <option value="Stationery / Courier">Stationery / Courier</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Amount (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    placeholder="Enter amount"
+                    value={newExpense.amount}
+                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                    className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs py-2 px-4 rounded-lg shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer focus:outline-none"
+              >
+                Log SFA Expense Claim
+              </button>
+            </form>
+
+            {/* Expenses List */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">Recent Claim Status</h4>
+              <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                {expensesList.map((exp) => (
+                  <div key={exp.id} className="flex justify-between items-center text-xs p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                    <div>
+                      <div className="font-semibold text-slate-800">{exp.category}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{exp.date}</div>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-slate-800 block">{exp.amount}</span>
+                      <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-bold mt-1 uppercase ${
+                        exp.status === 'Approved'
+                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                          : 'bg-amber-50 text-amber-600 border border-amber-100'
+                      }`}>
+                        {exp.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -481,6 +735,10 @@ export default function DashboardPage() {
       case 'products': return 'Plumbing Parts & Products Catalog';
       case 'announcements': return 'SFA Bulletins & announcements';
       case 'travel': return 'Today\'s Routing Travel Plan';
+      case 'tasks': return 'Daily SFA Task Assignments';
+      case 'survey': return 'SFA Market Survey Form';
+      case 'event': return 'SFA Dealer Event Calendar';
+      case 'expenses': return 'SFA Travel & Daily Allowances';
       default: return '';
     }
   };
@@ -574,7 +832,7 @@ export default function DashboardPage() {
             </button>
 
             <button
-              onClick={handleLogout}
+              onClick={handleLogoutClick}
               className="px-3 py-2 bg-slate-50 hover:bg-rose-50 border border-slate-100 hover:border-rose-100 rounded-lg text-xs font-bold text-slate-600 hover:text-rose-600 transition-all duration-200 cursor-pointer"
             >
               Logout
@@ -614,6 +872,58 @@ export default function DashboardPage() {
               {renderModalContent()}
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-scale-in">
+          {/* Backdrop click to close */}
+          <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-xs" onClick={() => setShowLogoutConfirm(false)}></div>
+          
+          {/* Modal card */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-2xl max-w-[340px] w-full text-center space-y-4 relative z-10 animate-fade-in">
+            <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+              </svg>
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="text-sm font-extrabold text-slate-800">Confirm Logout</h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Are you sure you want to end your current SFA session? Any unsaved check-in tracking logs will be finalized.</p>
+            </div>
+            
+            <div className="flex space-x-3 pt-2">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors focus:outline-none cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmLogout}
+                className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold shadow-md shadow-rose-500/10 transition-colors focus:outline-none cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Session Syncing Overlay */}
+      {isLoggingOut && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center space-y-4 animate-fade-in">
+          <div className="w-14 h-14 rounded-2xl bg-brand-600 flex items-center justify-center shadow-lg animate-bounce">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-7 w-7 text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.625c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 18.75v-5.625zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.625c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
+            </svg>
+          </div>
+          <div className="text-center space-y-1.5 animate-pulse">
+            <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">Ending SFA Session</h3>
+            <p className="text-[10px] text-slate-400 font-semibold">Syncing final visit records...</p>
           </div>
         </div>
       )}
