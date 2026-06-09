@@ -1,6 +1,8 @@
 {
-  "appId": "com.plumberapp.app",
+  "appId": "com.rajatchawla.plumberapp",
   "appName": "Plumber App",
   "webDir": "dist",
-  "bundledWebRuntime": false
+  "server": {
+    "androidScheme": "https"
+  }
 }
