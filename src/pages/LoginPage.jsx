@@ -24,6 +24,15 @@ export default function LoginPage() {
   const otpRefs = useRef([]);
   const timerRef = useRef(null);
 
+  const [isSplash, setIsSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSplash(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Focus helper on mount or step change
   useEffect(() => {
     if (activeStep === 'phone' && phoneInputRef.current) {
@@ -240,24 +249,40 @@ export default function LoginPage() {
     <div className="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans w-full">
       
       {/* Background decorative grids */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f080_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f080_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
+      <div className={`absolute inset-0 bg-[linear-gradient(to_right,#e2e8f080_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f080_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none transition-opacity duration-1000 ${
+        isSplash ? 'opacity-0' : 'opacity-100'
+      }`}></div>
 
       {/* Main Container */}
       <div className="w-full max-w-[420px] relative z-10">
         
-        {/* Brand Logo / Badge - Minimalist */}
-        <div className="flex flex-col items-center justify-center mb-8 animate-fade-in-down">
-          <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center shadow-md mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="h-5 w-5 text-white">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+        {/* Brand Logo / Badge - Splash transitioning */}
+        <div className={`flex flex-col items-center justify-center transition-all duration-[1000ms] ease-out ${
+          isSplash 
+            ? 'translate-y-[160px] sm:translate-y-[180px] scale-[1.4] mb-0' 
+            : 'translate-y-0 scale-100 mb-8'
+        }`}>
+          <div className={`bg-brand-600 flex items-center justify-center shadow-md mb-3 transition-all duration-[1000ms] ${
+            isSplash ? 'w-12 h-12 rounded-2xl shadow-lg' : 'w-10 h-10 rounded-xl'
+          }`}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-5 w-5 text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.625c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 18.75v-5.625zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.625c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">Plumber App</h1>
-          <p className="text-xs text-slate-500 mt-1">Sign in with your mobile number</p>
+          <h1 className={`font-bold tracking-tight text-slate-900 transition-all duration-[1000ms] ${
+            isSplash ? 'text-2xl sm:text-3xl' : 'text-xl'
+          }`}>Plumber SFA</h1>
+          <p className={`text-xs text-slate-500 mt-1 transition-opacity duration-[1000ms] ${
+            isSplash ? 'opacity-0' : 'opacity-100'
+          }`}>Sign in with your SFA mobile number</p>
         </div>
 
         {/* Slightly Translucent Minimalist Card */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 sm:p-8 shadow-xl shadow-slate-200/40 relative overflow-hidden animate-fade-in">
+        <div className={`bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 sm:p-8 shadow-xl shadow-slate-200/40 relative overflow-hidden transition-all duration-[1000ms] ease-out ${
+          isSplash 
+            ? 'opacity-0 scale-95 pointer-events-none' 
+            : 'opacity-100 scale-100'
+        }`}>
           
           {/* STEP 1: MOBILE NUMBER ENTRY */}
           {activeStep === 'phone' && (
@@ -466,12 +491,14 @@ export default function LoginPage() {
         {/* Footer branding & copy - Minimalist */}
         <p className="text-center text-[10px] font-medium text-slate-400 mt-8 leading-normal">
           Secure 256-bit SSL encrypted connection.<br />
-          &copy; 2026 Plumber App. All rights reserved.
+          &copy; 2026 Plumber SFA. All rights reserved.
         </p>
       </div>
 
       {/* Layered Minimalist SVG Wave Pattern in the center of the screen */}
-      <div className="absolute top-1/2 left-0 right-0 w-full -translate-y-1/2 overflow-hidden leading-none z-0 pointer-events-none">
+      <div className={`absolute top-1/2 left-0 right-0 w-full -translate-y-1/2 overflow-hidden leading-none z-0 pointer-events-none transition-opacity duration-1000 ${
+        isSplash ? 'opacity-0' : 'opacity-100'
+      }`}>
         <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[260px]">
           {/* Wave Layer 1 */}
           <path 
