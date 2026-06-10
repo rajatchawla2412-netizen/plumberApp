@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../../assets/icon-only.jpeg';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -262,12 +263,10 @@ export default function LoginPage() {
             ? 'translate-y-[160px] sm:translate-y-[180px] scale-[1.4] mb-0' 
             : 'translate-y-0 scale-100 mb-8'
         }`}>
-          <div className={`bg-brand-600 flex items-center justify-center shadow-md mb-3 transition-all duration-[1000ms] ${
+          <div className={`bg-white flex items-center justify-center shadow-md mb-3 transition-all duration-[1000ms] overflow-hidden ${
             isSplash ? 'w-12 h-12 rounded-2xl shadow-lg' : 'w-10 h-10 rounded-xl'
           }`}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-5 w-5 text-white">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.625c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 18.75v-5.625zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.625c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
-            </svg>
+            <img src={logo} alt="Plumber SFA Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className={`font-bold tracking-tight text-slate-900 transition-all duration-[1000ms] ${
             isSplash ? 'text-2xl sm:text-3xl' : 'text-xl'

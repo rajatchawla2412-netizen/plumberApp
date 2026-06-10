@@ -1,5 +1,6 @@
 import React from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
+import logo from '../../assets/icon-only.jpeg';
 
 export default function DashboardHome() {
   const { setActiveModal, isClockedIn } = useOutletContext();
@@ -19,10 +20,8 @@ export default function DashboardHome() {
           </svg>
         </div>
 
-        <div className="absolute right-0 bottom-0 opacity-5 pointer-events-none translate-x-5 translate-y-5">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-48 h-48">
-            <path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.625c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 18.75v-5.625zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.625c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
-          </svg>
+        <div className="absolute right-0 bottom-0 pointer-events-none translate-x-5 translate-y-5">
+          <img src={logo} alt="Water Drop Logo" className="w-48 h-48 object-cover rounded-3xl" style={{ filter: 'invert(1)', opacity: 0.05 }} />
         </div>
 
         <div className="relative z-10 space-y-1">

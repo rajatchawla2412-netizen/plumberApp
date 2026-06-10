@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
+import logo from '../../assets/icon-only.jpeg';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -731,8 +732,8 @@ export default function DashboardPage() {
                     <div className="text-right">
                       <span className="font-bold text-slate-800 block">{exp.amount}</span>
                       <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-bold mt-1 uppercase ${exp.status === 'Approved'
-                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                          : 'bg-amber-50 text-amber-600 border border-amber-100'
+                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                        : 'bg-amber-50 text-amber-600 border border-amber-100'
                         }`}>
                         {exp.status}
                       </span>
@@ -835,10 +836,8 @@ export default function DashboardPage() {
         {/* HEADER BAR */}
         <header className="sticky top-0 z-20 flex justify-between items-center bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-4 shadow-sm animate-fade-in-down">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8.5 h-8.5 rounded-lg bg-brand-600 flex items-center justify-center shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-4.5 w-4.5 text-white">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.625c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 18.75v-5.625zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.625c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
-              </svg>
+            <div className="w-8.5 h-8.5 rounded-lg bg-white flex items-center justify-center shadow-md overflow-hidden">
+              <img src={logo} alt="Plumber SFA Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-xs font-bold text-slate-800 block">Plumber SFA</span>
