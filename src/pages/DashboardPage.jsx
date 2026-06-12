@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
-import { App } from '@capacitor/app';
 import logo from '../../assets/icon-only.jpeg';
 
 export default function DashboardPage() {
@@ -42,28 +41,21 @@ export default function DashboardPage() {
 
   // Handle global custom back button events from App shell (modal/prompt closures)
   useEffect(() => {
-    let listenerPromise = null;
-
-    if (Capacitor.isNativePlatform()) {
-      listenerPromise = App.addListener('backButton', (data) => {
-        if (activeModal) {
-          setActiveModal(null);
-        } else if (showLogoutConfirm) {
-          setShowLogoutConfirm(false);
-        } else if (location.pathname === '/dashboard/user') {
-          navigate('/dashboard');
-        } else {
-          App.exitApp();
-        }
-      });
-    }
-
-    return () => {
-      if (listenerPromise) {
-        listenerPromise.then(handle => handle.remove());
+    const handleBackButton = (e) => {
+      if (activeModal) {
+        e.preventDefault();
+        setActiveModal(null);
+      } else if (showLogoutConfirm) {
+        e.preventDefault();
+        setShowLogoutConfirm(false);
       }
     };
-  }, [activeModal, showLogoutConfirm, location.pathname, navigate]);
+
+    window.addEventListener('appBackButton', handleBackButton);
+    return () => {
+      window.removeEventListener('appBackButton', handleBackButton);
+    };
+  }, [activeModal, showLogoutConfirm]);
 
   const handleTouchStart = (e) => {
     if (isRefreshing || activeModal) return;
@@ -777,7 +769,7 @@ export default function DashboardPage() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className={`bg-slate-50 text-slate-800 min-h-screen p-4 sm:p-6 relative font-sans w-full pb-16 transition-all duration-300 ${activeModal ? 'overflow-hidden' : 'overflow-y-auto'
+      className={`bg-slate-50 text-slate-800 min-h-screen p-4 sm:p-6 relative font-sans w-full pb-16 transition-all duration-300 safe-top safe-bottom safe-left safe-right ${activeModal ? 'overflow-hidden' : 'overflow-y-auto'
         }`}
     >
 

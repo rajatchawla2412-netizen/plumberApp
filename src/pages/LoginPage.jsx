@@ -51,16 +51,15 @@ export default function LoginPage() {
   // --- STEP 1: PHONE VALIDATION AND FORMATTING ---
   
   const validatePhoneNumber = (number) => {
-    // Validate that the number is exactly 10 digits
-    const phoneRegex = /^\d{10}$/;
-    return phoneRegex.test(number);
+    // Validate that the number is a digit string (at least 1 character) since it's a demo app
+    return number.length >= 1 && /^\d+$/.test(number);
   };
 
   const isPhoneValid = validatePhoneNumber(phone);
 
   const handlePhoneChange = (e) => {
-    // Clean input: remove any non-digit character
-    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    // Clean input: remove any non-digit character (allow any amount of digits)
+    const value = e.target.value.replace(/\D/g, '');
     setPhone(value);
     setPhoneError('');
   };
@@ -75,7 +74,7 @@ export default function LoginPage() {
   const handlePhoneSubmit = (e) => {
     e.preventDefault();
     if (!validatePhoneNumber(phone)) {
-      setPhoneError('Please enter a valid 10-digit mobile number');
+      setPhoneError('Please enter a valid mobile number');
       triggerInputShake();
       return;
     }
@@ -247,7 +246,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans w-full">
+    <div className="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans w-full safe-top safe-bottom safe-left safe-right">
       
       {/* Background decorative grids */}
       <div className={`absolute inset-0 bg-[linear-gradient(to_right,#e2e8f080_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f080_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none transition-opacity duration-1000 ${
@@ -310,11 +309,10 @@ export default function LoginPage() {
                       id="phone" 
                       name="phone" 
                       autoComplete="off"
-                      placeholder="Enter 10-digit number"
+                      placeholder="Enter mobile number"
                       value={phone}
                       onChange={handlePhoneChange}
                       className="w-full bg-transparent py-3 px-3 text-slate-900 text-sm placeholder-slate-400 focus:outline-none tracking-wide"
-                      maxLength={10}
                     />
                     {/* Validation Status Icon */}
                     <div className={`absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full transition-all duration-300 ${
