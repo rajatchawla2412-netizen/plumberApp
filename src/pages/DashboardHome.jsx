@@ -6,6 +6,9 @@ export default function DashboardHome() {
   const { setActiveModal, isClockedIn } = useOutletContext();
   const navigate = useNavigate();
 
+  const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+  const isCheckinAllowed = userInfo.checkin_allowed !== false;
+
   return (
     <div className="space-y-6">
       {/* WELCOME SECTION - SFA Executive Role */}
@@ -159,7 +162,13 @@ export default function DashboardHome() {
 
           {/* Shortcut 1: Attendance */}
           <button
-            onClick={() => setActiveModal('attendance')}
+            onClick={() => {
+              if (!isCheckinAllowed) {
+                alert("Check-in is not allowed for your account.");
+              } else {
+                setActiveModal('attendance');
+              }
+            }}
             className="p-3 bg-white/60 backdrop-blur-xl border border-white hover:border-brand-200 rounded-xl flex flex-col items-center text-center shadow-xs hover:shadow-sm hover:scale-[1.02] hover:bg-white/80 active:scale-[0.98] transition-all duration-300 group focus:outline-none cursor-pointer"
           >
             <div className="w-9 h-9 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shadow-xs group-hover:bg-brand-600 group-hover:text-white group-hover:scale-105 transition-all duration-300 mb-2 shrink-0">
@@ -187,7 +196,13 @@ export default function DashboardHome() {
 
           {/* Shortcut 3: Checkins */}
           <button
-            onClick={() => setActiveModal('checkins')}
+            onClick={() => {
+              if (!isCheckinAllowed) {
+                alert("Check-in is not allowed for your account.");
+              } else {
+                setActiveModal('checkins');
+              }
+            }}
             className="p-3 bg-white/60 backdrop-blur-xl border border-white hover:border-brand-200 rounded-xl flex flex-col items-center text-center shadow-xs hover:shadow-sm hover:scale-[1.02] hover:bg-white/80 active:scale-[0.98] transition-all duration-300 group focus:outline-none cursor-pointer"
           >
             <div className="w-9 h-9 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shadow-xs group-hover:bg-brand-600 group-hover:text-white group-hover:scale-105 transition-all duration-300 mb-2 shrink-0">
