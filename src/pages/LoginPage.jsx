@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/icon-only.jpeg';
+import { motion, AnimatePresence } from 'framer-motion';
+import { stepVariants, shakeVariants } from '../animations/variants';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export default function LoginPage() {
   
   // Transition and animation states
   const [activeStep, setActiveStep] = useState('phone'); 
-  const [slideAnimClass, setSlideAnimClass] = useState(''); 
+  const [direction, setDirection] = useState(1); // 1 for forward, -1 for backward
   const [shakeActive, setShakeActive] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [otpError, setOtpError] = useState('');
@@ -216,26 +218,14 @@ export default function LoginPage() {
 
   const transitionToStep = (targetStep) => {
     if (targetStep === 'otp' && activeStep === 'phone') {
-      // Step forward: phone -> otp
-      setSlideAnimClass('slide-out-left');
-      setTimeout(() => {
-        setActiveStep('otp');
-        setSlideAnimClass('slide-in-right');
-      }, 300);
+      setDirection(1);
+      setActiveStep('otp');
     } else if (targetStep === 'phone' && activeStep === 'otp') {
-      // Step backward: otp -> phone
-      setSlideAnimClass('slide-out-right');
-      setTimeout(() => {
-        setActiveStep('phone');
-        setSlideAnimClass('slide-in-left');
-      }, 300);
+      setDirection(-1);
+      setActiveStep('phone');
     } else if (targetStep === 'success' && activeStep === 'otp') {
-      // Step forward: otp -> success
-      setSlideAnimClass('slide-out-left');
-      setTimeout(() => {
-        setActiveStep('success');
-        setSlideAnimClass('slide-in-right');
-      }, 300);
+      setDirection(1);
+      setActiveStep('success');
     }
   };
 
@@ -282,206 +272,241 @@ export default function LoginPage() {
             : 'opacity-100 scale-100'
         }`}>
           
-          {/* STEP 1: MOBILE NUMBER ENTRY */}
-          {activeStep === 'phone' && (
-            <div className={`step-container transition-all duration-300 ${slideAnimClass}`}>
-              <form onSubmit={handlePhoneSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="phone" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number</label>
-                  <div className={`relative flex rounded-lg border bg-white/50 focus-within:ring-2 focus-within:ring-brand-500/15 transition-all duration-200 ${
-                    shakeActive ? 'shake' : ''
-                  } ${
-                    phoneError 
-                      ? 'border-rose-400 focus-within:border-rose-400' 
-                      : isPhoneValid 
-                        ? 'border-emerald-400 focus-within:border-emerald-400' 
-                        : 'border-slate-200 focus-within:border-brand-500'
-                  }`}>
-                    {/* Country Code Selector */}
-                    <div className="flex items-center pl-3 pr-2 border-r border-slate-200 text-slate-600 select-none">
-                      <span className="text-sm mr-1">🇮🇳</span>
-                      <span className="text-xs font-bold text-slate-500">+91</span>
-                    </div>
-                    {/* Input */}
-                    <input 
-                      ref={phoneInputRef}
-                      type="tel" 
-                      id="phone" 
-                      name="phone" 
-                      autoComplete="off"
-                      placeholder="Enter mobile number"
-                      value={phone}
-                      onChange={handlePhoneChange}
-                      className="w-full bg-transparent py-3 px-3 text-slate-900 text-sm placeholder-slate-400 focus:outline-none tracking-wide"
-                    />
-                    {/* Validation Status Icon */}
-                    <div className={`absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full transition-all duration-300 ${
-                      isPhoneValid ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-                    }`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                  {phoneError && (
-                    <p className="text-xs text-rose-500 mt-2 transition-all duration-200">{phoneError}</p>
-                  )}
-                </div>
-
-                {/* Instruction Text */}
-                <div className="flex items-start space-x-3 bg-slate-50/70 p-3.5 rounded-lg border border-slate-100">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">A 6-digit code will be sent to this number for identity verification.</p>
-                </div>
-
-                {/* Submit Button */}
-                <button 
-                  type="submit" 
-                  disabled={!isPhoneValid || loading} 
-                  className={`w-full py-3 px-4 rounded-lg text-xs font-bold text-white transition-all duration-300 relative flex items-center justify-center space-x-2 ${
-                    isPhoneValid && !loading
-                      ? 'bg-brand-600 hover:bg-brand-500 hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-md shadow-brand-500/20'
-                      : 'bg-slate-300 cursor-not-allowed'
-                  }`}
-                >
-                  {loading ? (
-                    <>
-                      <span>Sending Code...</span>
-                      <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    </>
-                  ) : (
-                    <>
-                      <span>Send Verification Code</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          )}
-
-          {/* STEP 2: OTP VERIFICATION */}
-          {activeStep === 'otp' && (
-            <div className={`step-container transition-all duration-300 ${slideAnimClass}`}>
-              <form onSubmit={handleOtpSubmit} className="space-y-6">
-                <div className="text-center mb-2">
-                  <div className="text-slate-400 text-xs">We've sent a code to</div>
-                  <div className="text-slate-800 font-bold text-sm mt-1 tracking-wider">{formatPhoneDisplay(phone)}</div>
-                  <button 
-                    type="button" 
-                    onClick={handleEditPhone}
-                    disabled={loading}
-                    className="text-[11px] text-slate-500 hover:text-brand-600 mt-1 font-semibold hover:underline focus:outline-none"
-                  >
-                    Change number
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center mb-4">Enter 6-Digit Code</label>
-                  <div className={`flex items-center justify-center space-x-1.5 sm:space-x-3 ${shakeActive ? 'shake' : ''}`}>
-                    {otp.map((digit, idx) => (
+          <AnimatePresence mode="wait" custom={direction}>
+            {/* STEP 1: MOBILE NUMBER ENTRY */}
+            {activeStep === 'phone' && (
+              <motion.div
+                key="phone"
+                custom={direction}
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.25 }}
+                className="step-container"
+              >
+                <form onSubmit={handlePhoneSubmit} className="space-y-6">
+                  <div>
+                    <label htmlFor="phone" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number</label>
+                    <motion.div
+                      variants={shakeVariants}
+                      animate={shakeActive ? "shake" : "idle"}
+                      className={`relative flex rounded-lg border bg-white/50 focus-within:ring-2 focus-within:ring-brand-500/15 transition-all duration-200 ${
+                        phoneError 
+                          ? 'border-rose-400 focus-within:border-rose-400' 
+                          : isPhoneValid 
+                            ? 'border-emerald-400 focus-within:border-emerald-400' 
+                            : 'border-slate-200 focus-within:border-brand-500'
+                      }`}
+                    >
+                      {/* Country Code Selector */}
+                      <div className="flex items-center pl-3 pr-2 border-r border-slate-200 text-slate-600 select-none">
+                        <span className="text-sm mr-1">🇮🇳</span>
+                        <span className="text-xs font-bold text-slate-500">+91</span>
+                      </div>
+                      {/* Input */}
                       <input 
-                        key={idx}
-                        ref={(el) => (otpRefs.current[idx] = el)}
-                        type="text" 
-                        pattern="[0-9]*" 
-                        inputMode="numeric" 
-                        maxLength={1} 
-                        value={digit}
-                        onChange={(e) => handleOtpChange(idx, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                        onPaste={idx === 0 ? handleOtpPaste : undefined}
-                        disabled={loading}
-                        className="w-9 h-9 sm:w-12 sm:h-12 bg-white border border-slate-200 rounded-lg text-center text-sm sm:text-lg font-bold text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all duration-200" 
+                        ref={phoneInputRef}
+                        type="tel" 
+                        id="phone" 
+                        name="phone" 
+                        autoComplete="off"
+                        placeholder="Enter mobile number"
+                        value={phone}
+                        onChange={handlePhoneChange}
+                        className="w-full bg-transparent py-3 px-3 text-slate-900 text-sm placeholder-slate-400 focus:outline-none tracking-wide"
                       />
-                    ))}
-                  </div>
-                  {otpError && (
-                    <p className="text-xs text-rose-500 text-center mt-2 transition-all duration-200">{otpError}</p>
-                  )}
-                </div>
-
-                {/* Resend OTP and Timer */}
-                <div className="flex items-center justify-between text-[11px] px-1">
-                  <span className="text-slate-400">Didn't receive the code?</span>
-                  <div className="flex items-center space-x-1">
-                    {!resendActive ? (
-                      <span className="text-slate-400 font-medium">
-                        Resend in <span className="text-brand-600 font-bold">{timer}</span>s
-                      </span>
-                    ) : (
-                      <button 
-                        type="button" 
-                        onClick={handleResend}
-                        disabled={loading}
-                        className="text-brand-600 hover:text-brand-500 font-bold focus:outline-none cursor-pointer"
-                      >
-                        Resend Code
-                      </button>
+                      {/* Validation Status Icon */}
+                      <div className={`absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full transition-all duration-300 ${
+                        isPhoneValid ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                      }`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </motion.div>
+                    {phoneError && (
+                      <p className="text-xs text-rose-500 mt-2 transition-all duration-200">{phoneError}</p>
                     )}
                   </div>
-                </div>
 
-                {/* Verify Button */}
-                <button 
-                  type="submit" 
-                  disabled={!isOtpComplete || loading} 
-                  className={`w-full py-3 px-4 rounded-lg text-xs font-bold text-white transition-all duration-300 flex items-center justify-center space-x-2 ${
-                    isOtpComplete && !loading
-                      ? 'bg-brand-600 hover:bg-brand-500 hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-md shadow-brand-500/20'
-                      : 'bg-slate-300 cursor-not-allowed'
-                  }`}
-                >
-                  {loading ? (
-                    <>
-                      <span>Verifying...</span>
-                      <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    </>
-                  ) : (
-                    <>
-                      <span>Verify &amp; Sign In</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          )}
+                  {/* Instruction Text */}
+                  <div className="flex items-start space-x-3 bg-slate-50/70 p-3.5 rounded-lg border border-slate-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">A 6-digit code will be sent to this number for identity verification.</p>
+                  </div>
 
-          {/* STEP 3: SUCCESS STATE */}
-          {activeStep === 'success' && (
-            <div className={`step-container transition-all duration-300 ${slideAnimClass} flex flex-col items-center justify-center py-6 text-center`}>
-              <div className="success-checkmark mb-6">
-                <div className="w-14 h-14 rounded-full bg-brand-50 border-2 border-brand-500/20 flex items-center justify-center relative">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-brand-500 svg-check animate-draw" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+                  {/* Submit Button */}
+                  <button 
+                    type="submit" 
+                    disabled={!isPhoneValid || loading} 
+                    className={`w-full py-3 px-4 rounded-lg text-xs font-bold text-white transition-all duration-300 relative flex items-center justify-center space-x-2 ${
+                      isPhoneValid && !loading
+                        ? 'bg-brand-600 hover:bg-brand-500 hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-md shadow-brand-500/20'
+                        : 'bg-slate-300 cursor-not-allowed'
+                    }`}
+                  >
+                    {loading ? (
+                      <>
+                        <span>Sending Code...</span>
+                        <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </>
+                    ) : (
+                      <>
+                        <span>Send Verification Code</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </motion.div>
+            )}
+
+            {/* STEP 2: OTP VERIFICATION */}
+            {activeStep === 'otp' && (
+              <motion.div
+                key="otp"
+                custom={direction}
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.25 }}
+                className="step-container"
+              >
+                <form onSubmit={handleOtpSubmit} className="space-y-6">
+                  <div className="text-center mb-2">
+                    <div className="text-slate-400 text-xs">We've sent a code to</div>
+                    <div className="text-slate-800 font-bold text-sm mt-1 tracking-wider">{formatPhoneDisplay(phone)}</div>
+                    <button 
+                      type="button" 
+                      onClick={handleEditPhone}
+                      disabled={loading}
+                      className="text-[11px] text-slate-500 hover:text-brand-600 mt-1 font-semibold hover:underline focus:outline-none"
+                    >
+                      Change number
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center mb-4">Enter 6-Digit Code</label>
+                    <motion.div
+                      variants={shakeVariants}
+                      animate={shakeActive ? "shake" : "idle"}
+                      className="flex items-center justify-center space-x-1.5 sm:space-x-3"
+                    >
+                      {otp.map((digit, idx) => (
+                        <input 
+                          key={idx}
+                          ref={(el) => (otpRefs.current[idx] = el)}
+                          type="text" 
+                          pattern="[0-9]*" 
+                          inputMode="numeric" 
+                          maxLength={1} 
+                          value={digit}
+                          onChange={(e) => handleOtpChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                          onPaste={idx === 0 ? handleOtpPaste : undefined}
+                          disabled={loading}
+                          className="w-9 h-9 sm:w-12 sm:h-12 bg-white border border-slate-200 rounded-lg text-center text-sm sm:text-lg font-bold text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all duration-200" 
+                        />
+                      ))}
+                    </motion.div>
+                    {otpError && (
+                      <p className="text-xs text-rose-500 text-center mt-2 transition-all duration-200">{otpError}</p>
+                    )}
+                  </div>
+
+                  {/* Resend OTP and Timer */}
+                  <div className="flex items-center justify-between text-[11px] px-1">
+                    <span className="text-slate-400">Didn't receive the code?</span>
+                    <div className="flex items-center space-x-1">
+                      {!resendActive ? (
+                        <span className="text-slate-400 font-medium">
+                          Resend in <span className="text-brand-600 font-bold">{timer}</span>s
+                        </span>
+                      ) : (
+                        <button 
+                          type="button" 
+                          onClick={handleResend}
+                          disabled={loading}
+                          className="text-brand-600 hover:text-brand-500 font-bold focus:outline-none cursor-pointer"
+                        >
+                          Resend Code
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Verify Button */}
+                  <button 
+                    type="submit" 
+                    disabled={!isOtpComplete || loading} 
+                    className={`w-full py-3 px-4 rounded-lg text-xs font-bold text-white transition-all duration-300 flex items-center justify-center space-x-2 ${
+                      isOtpComplete && !loading
+                        ? 'bg-brand-600 hover:bg-brand-500 hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-md shadow-brand-500/20'
+                        : 'bg-slate-300 cursor-not-allowed'
+                    }`}
+                  >
+                    {loading ? (
+                      <>
+                        <span>Verifying...</span>
+                        <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </>
+                    ) : (
+                      <>
+                        <span>Verify &amp; Sign In</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </motion.div>
+            )}
+
+            {/* STEP 3: SUCCESS STATE */}
+            {activeStep === 'success' && (
+              <motion.div
+                key="success"
+                custom={direction}
+                variants={stepVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.25 }}
+                className="step-container flex flex-col items-center justify-center py-6 text-center"
+              >
+                <div className="success-checkmark mb-6">
+                  <div className="w-14 h-14 rounded-full bg-brand-50 border-2 border-brand-500/20 flex items-center justify-center relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-brand-500 svg-check animate-draw" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
                 </div>
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Welcome Back!</h3>
-              <p className="text-xs text-slate-500 max-w-[280px]">Your identity has been verified successfully. Redirecting you to workspace...</p>
-              <div className="mt-8 flex justify-center">
-                <div className="flex space-x-1.5 items-center">
-                  <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.25s' }}></div>
-                  <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Welcome Back!</h3>
+                <p className="text-xs text-slate-500 max-w-[280px]">Your identity has been verified successfully. Redirecting you to workspace...</p>
+                <div className="mt-8 flex justify-center">
+                  <div className="flex space-x-1.5 items-center">
+                    <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.25s' }}></div>
+                    <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
         </div>
 

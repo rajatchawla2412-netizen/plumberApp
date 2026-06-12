@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
+import LandingPage from './pages/LandingPage';
 import DashboardHome from './pages/DashboardHome';
 import UserPage from './pages/UserPage';
 
@@ -21,17 +21,17 @@ function App() {
       let listenerHandle = null;
       const listenerPromise = AppPlugin.addListener('backButton', (data) => {
         // Dispatch custom cancelable event on window to allow components to intercept
-        const event = new CustomEvent('appBackButton', { 
+        const event = new CustomEvent('appBackButton', {
           cancelable: true,
-          detail: data 
+          detail: data
         });
-        
+
         const isDefaultPrevented = !window.dispatchEvent(event);
-        
+
         if (!isDefaultPrevented) {
           const hash = window.location.hash.replace(/^#/, '');
           const cleanPath = hash.split('?')[0];
-          
+
           if (cleanPath === '/dashboard') {
             const now = Date.now();
             if (now - lastBackPressRef.current < 2000) {
@@ -70,7 +70,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardPage />}>
+          <Route path="/dashboard" element={<LandingPage />}>
             <Route index element={<DashboardHome />} />
             <Route path="user" element={<UserPage />} />
           </Route>

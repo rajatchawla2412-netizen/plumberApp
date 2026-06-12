@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { staggerContainerVariants, fadeUpVariants } from '../animations/variants';
 
 export default function UserPage() {
   const navigate = useNavigate();
@@ -34,10 +36,15 @@ export default function UserPage() {
   };
 
   return (
-    <div className="space-y-6 animate-scale-in">
+    <motion.div 
+      variants={staggerContainerVariants()}
+      initial="hidden"
+      animate="show"
+      className="space-y-6"
+    >
       
       {/* BACK BUTTON & HEADER */}
-      <div className="flex items-center space-x-3">
+      <motion.div variants={fadeUpVariants} className="flex items-center space-x-3">
         <button 
           onClick={() => navigate('/dashboard')}
           className="p-2 bg-white/60 hover:bg-white/90 border border-white hover:border-brand-200 rounded-xl text-brand-600 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus:outline-none flex items-center justify-center shadow-xs"
@@ -50,10 +57,10 @@ export default function UserPage() {
           <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wide">SFA Executive Profile</h2>
           <p className="text-[10px] text-slate-400 font-semibold">Rajesh Kumar • Emp ID: SFA-3948</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* SFA PERFORMANCE TARGET CHART CARD */}
-      <section className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 shadow-xl shadow-slate-200/40 space-y-4">
+      <motion.section variants={fadeUpVariants} className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 shadow-xl shadow-slate-200/40 space-y-4">
         <div>
           <h3 className="text-xs font-extrabold text-black-500 uppercase tracking-wider">Target & Performance Log</h3>
           <p className="text-[10px] text-black-400 mt-0.5">Month-to-date sales quotas status</p>
@@ -71,18 +78,20 @@ export default function UserPage() {
               
               {/* Progress Bar Track */}
               <div className="w-full h-3.5 bg-slate-50 border border-slate-200/50 rounded-full overflow-hidden p-[2px] shadow-xs">
-                <div 
-                  className={`h-full rounded-full bg-gradient-to-r ${tgt.color} shadow-sm transition-all duration-1000 ease-out`}
-                  style={{ width: `${tgt.percent}%` }}
-                ></div>
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${tgt.percent}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className={`h-full rounded-full bg-gradient-to-r ${tgt.color} shadow-sm`}
+                ></motion.div>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* LEAVES STATUS CARD */}
-      <section className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 shadow-xl shadow-slate-200/40 space-y-4">
+      <motion.section variants={fadeUpVariants} className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 shadow-xl shadow-slate-200/40 space-y-4">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-xs font-extrabold text-black-500 uppercase tracking-wider">Leave Balance Tracker</h3>
@@ -107,10 +116,10 @@ export default function UserPage() {
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* HOLIDAYS CALENDAR CARD */}
-      <section className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 shadow-xl shadow-slate-200/40 space-y-4">
+      <motion.section variants={fadeUpVariants} className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-5 shadow-xl shadow-slate-200/40 space-y-4">
         <div>
           <h3 className="text-xs font-extrabold text-black-500 uppercase tracking-wider">SFA Holiday Calendar 2026</h3>
           <p className="text-[10px] text-black-400 mt-0.5">Upcoming scheduled corporate holidays</p>
@@ -129,8 +138,8 @@ export default function UserPage() {
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-    </div>
+    </motion.div>
   );
 }

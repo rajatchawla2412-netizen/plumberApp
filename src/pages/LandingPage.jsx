@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import logo from '../../assets/icon-only.jpeg';
+import { motion, AnimatePresence } from 'framer-motion';
+import { fadeVariants, bottomSheetVariants, scaleVariants } from '../animations/variants';
 
-export default function DashboardPage() {
+export default function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [userPhone] = useState(location.state?.phone || '');
@@ -817,13 +819,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Responsive Wrapper */}
-      <div
-        className="max-w-[480px] mx-auto relative z-10 space-y-6"
-        style={{
-          transform: `translateY(${pullDistance}px)`,
-          transition: isPulling ? 'none' : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
-      >
+      <div className="max-w-[480px] mx-auto relative z-10 space-y-6">
 
         {/* HEADER BAR */}
         <header className="sticky top-0 z-20 flex justify-between items-center bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-4 shadow-sm animate-fade-in-down">
@@ -858,92 +854,143 @@ export default function DashboardPage() {
         </header>
 
         {/* OUTLET AND SHELL CONTENT SCREEN */}
-        <Outlet context={{ setActiveModal, isClockedIn }} />
+        <div
+          style={{
+            transform: `translateY(${pullDistance}px)`,
+            transition: isPulling ? 'none' : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          <Outlet context={{ setActiveModal, isClockedIn }} />
+        </div>
 
       </div>
 
       {/* DETAILED MODAL DRAWER OVERLAY */}
-      {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 backdrop-blur-xs animate-fade-in">
-          {/* Modal Backdrop click */}
-          <div className="absolute inset-0" onClick={() => setActiveModal(null)}></div>
+      <AnimatePresence>
+        {activeModal && (
+          <motion.div
+            variants={fadeVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 backdrop-blur-xs"
+          >
+            {/* Modal Backdrop click */}
+            <div className="absolute inset-0" onClick={() => setActiveModal(null)}></div>
 
-          {/* Bottom Sheet Card */}
-          <div className="w-full max-w-[480px] bg-white rounded-t-3xl p-6 shadow-2xl relative z-10 border-t border-slate-100 flex flex-col max-h-[90vh] overflow-hidden translate-y-0 transition-transform duration-300">
+            {/* Bottom Sheet Card */}
+            <motion.div
+              variants={bottomSheetVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="w-full max-w-[480px] bg-white rounded-t-3xl p-6 shadow-2xl relative z-10 border-t border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
+            >
 
-            {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-5 shrink-0">
-              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{getModalTitle()}</h3>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+              {/* Modal Header */}
+              <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-5 shrink-0">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{getModalTitle()}</h3>
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-            {/* Modal Body */}
-            <div className="overflow-y-auto pb-4 shrink-1">
-              {renderModalContent()}
-            </div>
+              {/* Modal Body */}
+              <div className="overflow-y-auto pb-4 shrink-1">
+                {renderModalContent()}
+              </div>
 
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Logout Confirmation Modal */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-scale-in">
-          {/* Backdrop click to close */}
-          <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-xs" onClick={() => setShowLogoutConfirm(false)}></div>
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            variants={fadeVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4"
+          >
+            {/* Backdrop click to close */}
+            <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-xs" onClick={() => setShowLogoutConfirm(false)}></div>
 
-          {/* Modal card */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-2xl max-w-[340px] w-full text-center space-y-4 relative z-10 animate-fade-in">
-            <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-              </svg>
-            </div>
+            {/* Modal card */}
+            <motion.div
+              variants={scaleVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="bg-white border border-slate-100 rounded-2xl p-6 shadow-2xl max-w-[340px] w-full text-center space-y-4 relative z-10"
+            >
+              <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+              </div>
 
-            <div className="space-y-1">
-              <h3 className="text-sm font-extrabold text-slate-800">Confirm Logout</h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">Are you sure you want to end your current SFA session? Any unsaved check-in tracking logs will be finalized.</p>
-            </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-extrabold text-slate-800">Confirm Logout</h3>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">Are you sure you want to end your current SFA session? Any unsaved check-in tracking logs will be finalized.</p>
+              </div>
 
-            <div className="flex space-x-3 pt-2">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors focus:outline-none cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmLogout}
-                className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold shadow-md shadow-rose-500/10 transition-colors focus:outline-none cursor-pointer"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="flex space-x-3 pt-2">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors focus:outline-none cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmLogout}
+                  className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold shadow-md shadow-rose-500/10 transition-colors focus:outline-none cursor-pointer"
+                >
+                  Logout
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Logout Session Syncing Overlay */}
-      {isLoggingOut && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center space-y-4 animate-fade-in">
-          <div className="w-14 h-14 rounded-2xl bg-brand-600 flex items-center justify-center shadow-lg animate-bounce">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-7 w-7 text-white">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.625c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 18.75v-5.625zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.625c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
-            </svg>
-          </div>
-          <div className="text-center space-y-1.5 animate-pulse">
-            <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">Ending SFA Session</h3>
-            <p className="text-[10px] text-slate-400 font-semibold">Syncing final visit records...</p>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isLoggingOut && (
+          <motion.div
+            variants={fadeVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center space-y-4"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+              className="w-14 h-14 rounded-2xl bg-brand-600 flex items-center justify-center shadow-lg"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-7 w-7 text-white">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.625c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 18.75v-5.625zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.625c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
+              </svg>
+            </motion.div>
+            <div className="text-center space-y-1.5">
+              <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">Ending SFA Session</h3>
+              <p className="text-[10px] text-slate-400 font-semibold animate-pulse">Syncing final visit records...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Layered Minimalist SVG Wave Pattern in the background */}
       <div className="fixed bottom-0 left-0 right-0 w-full overflow-hidden leading-none z-0 pointer-events-none">
