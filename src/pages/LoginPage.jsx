@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/icon-only.jpeg';
 import { motion, AnimatePresence } from 'framer-motion';
 import { stepVariants, shakeVariants } from '../animations/variants';
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -28,6 +29,13 @@ export default function LoginPage() {
   const timerRef = useRef(null);
 
   const [isSplash, setIsSplash] = useState(true);
+
+  useEffect(() => {
+    // Redirection guard: if already logged in, redirect directly to dashboard
+    if (localStorage.getItem('api-key')) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -182,36 +190,107 @@ export default function LoginPage() {
     }, 800);
   };
 
-  // --- STEP 2 SUBMIT: OTP VERIFICATION ---
-
-  const handleOtpSubmit = (e) => {
+  const handleOtpSubmit = async (e) => {
     e.preventDefault();
     if (!isOtpComplete) return;
 
     setLoading(true);
     setOtpError('');
 
-    // Simulate OTP Validation (1200ms latency)
-    setTimeout(() => {
+    const otpCode = otp.join('');
+    if (otpCode !== '123456') {
       setLoading(false);
-      const otpCode = otp.join('');
-      if (otpCode === '123456') {
-        transitionToStep('success');
-        
-        // Wait for transition animation to complete before redirecting
-        setTimeout(() => {
-          navigate('/dashboard', { state: { phone } });
-        }, 1800);
+      setOtpError('Incorrect code. Please enter 123456 to log in.');
+      setOtp(['', '', '', '', '', '']); // clear OTP boxes
+      triggerInputShake();
+      // focus the first OTP input
+      setTimeout(() => {
+        otpRefs.current[0]?.focus();
+      }, 100);
+      return;
+    }
+
+    try {
+      let responseData;
+      let isOk = false;
+
+      if (Capacitor.isNativePlatform()) {
+        const options = {
+          url: 'http://192.168.29.99:8099/api/user/login',
+          headers: { 'Content-Type': 'application/json' },
+          data: {
+            params: {
+              db: 'db_rest_api_jun10',
+              login: 'd@gmail.com',
+              password: 'd'
+            }
+          }
+        };
+        const res = await CapacitorHttp.post(options);
+        isOk = res.status >= 200 && res.status < 300;
+        responseData = res.data;
       } else {
-        setOtpError('Incorrect code. Please enter 123456 to log in.');
-        setOtp(['', '', '', '', '', '']); // clear OTP boxes
-        triggerInputShake();
-        // focus the first OTP input
-        setTimeout(() => {
-          otpRefs.current[0]?.focus();
-        }, 100);
+        const res = await fetch('/api/user/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            params: {
+              db: 'db_rest_api_jun10',
+              login: 'd@gmail.com',
+              password: 'd'
+            }
+          })
+        });
+        isOk = res.ok;
+        if (isOk) {
+          responseData = await res.json();
+        } else {
+          throw new Error(`Server returned status ${res.status}`);
+        }
       }
-    }, 1200);
+
+      if (!isOk) {
+        throw new Error('Server returned error status');
+      }
+
+      if (responseData && responseData.result) {
+        const { status, message } = responseData.result;
+
+        if (status === 'success') {
+          // Store the api-key as it is required for login
+          const apiKey = responseData.result['api-key'];
+          localStorage.setItem('api-key', apiKey);
+          localStorage.setItem('user_info', JSON.stringify(responseData.result));
+          localStorage.setItem('user_phone', phone);
+
+          setLoading(false);
+          transitionToStep('success');
+
+          // Wait for transition animation to complete before redirecting
+          setTimeout(() => {
+            navigate('/dashboard', { state: { phone } });
+          }, 1800);
+        } else if (status === 'error') {
+          setLoading(false);
+          setOtpError(message || 'User already logged in from another device');
+          triggerInputShake();
+        } else {
+          setLoading(false);
+          setOtpError('Unexpected status response from server.');
+          triggerInputShake();
+        }
+      } else {
+        setLoading(false);
+        setOtpError('Invalid API response format.');
+        triggerInputShake();
+      }
+    } catch (err) {
+      setLoading(false);
+      setOtpError(`Connection Error: ${err.message || 'Server unreachable'}`);
+      triggerInputShake();
+    }
   };
 
   // --- TRANSITION HELPER SYSTEM ---

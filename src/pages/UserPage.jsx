@@ -40,7 +40,7 @@ export default function UserPage() {
       variants={staggerContainerVariants()}
       initial="hidden"
       animate="show"
-      className="space-y-6"
+      className="space-y-6 pt-4 pb-8"
     >
       
       {/* BACK BUTTON & HEADER */}

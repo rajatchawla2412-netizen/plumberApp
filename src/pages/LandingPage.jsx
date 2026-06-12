@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import logo from '../../assets/icon-only.jpeg';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeVariants, bottomSheetVariants, scaleVariants } from '../animations/variants';
@@ -8,7 +8,14 @@ import { fadeVariants, bottomSheetVariants, scaleVariants } from '../animations/
 export default function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [userPhone] = useState(location.state?.phone || '');
+  const [userPhone] = useState(location.state?.phone || localStorage.getItem('user_phone') || '');
+
+  useEffect(() => {
+    // Redirection guard: if not authenticated, redirect straight to login
+    if (!localStorage.getItem('api-key')) {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
 
   const [activeModal, setActiveModal] = useState(null); // null | SFA category id / shortcut id
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -19,6 +26,16 @@ export default function LandingPage() {
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Route Synchronized', message: 'Daily SFA travel routing plan updated with 4 stops.', time: 'Just now', read: false },
+    { id: 2, title: 'Shift Check-in Reminder', message: 'Remember to check-in your SFA shift to log store visits.', time: '1 hr ago', read: false },
+    { id: 3, title: 'Target Achieved!', message: 'Congratulations! You have completed 100% of your primary sales target for this week.', time: '2 hrs ago', read: true },
+    { id: 4, title: 'Payment Pending Alert', message: "Dealer 'Garg Sanitation' has a pending payment of ₹15,400 due today.", time: '4 hrs ago', read: false },
+    { id: 5, title: 'Stock Alert - Low Stock', message: "Distributor 'Apex Distributors' reported low stock on 20mm premium couplings.", time: '1 day ago', read: false },
+    { id: 6, title: 'New Product Launch', message: 'AquaFlow brass valves catalog is now available in your sales materials.', time: '1 day ago', read: true },
+    { id: 7, title: 'Meeting Rescheduled', message: "Your meeting with 'Sai Plumbing House' has been rescheduled to tomorrow 10:00 AM.", time: '2 days ago', read: true }
+  ]);
 
   // Pull-to-refresh states
   const [isPulling, setIsPulling] = useState(false);
@@ -177,12 +194,48 @@ export default function LandingPage() {
     setShowLogoutConfirm(true);
   };
 
-  const handleConfirmLogout = () => {
+  const handleConfirmLogout = async () => {
     setShowLogoutConfirm(false);
     setIsLoggingOut(true);
-    setTimeout(() => {
-      navigate('/login');
-    }, 1200);
+
+    const apiKey = localStorage.getItem('api-key');
+
+    try {
+      if (apiKey) {
+        const body = {
+          params: {
+            token: apiKey
+          }
+        };
+
+        if (Capacitor.isNativePlatform()) {
+          const options = {
+            url: 'http://192.168.29.99:8099/api/user/logout',
+            headers: { 'Content-Type': 'application/json' },
+            data: body
+          };
+          await CapacitorHttp.post(options);
+        } else {
+          await fetch('/api/user/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Logout API error:', err);
+    } finally {
+      // Clear local storage and redirect regardless of API response
+      localStorage.removeItem('api-key');
+      localStorage.removeItem('user_info');
+      localStorage.removeItem('user_phone');
+
+      setTimeout(() => {
+        setIsLoggingOut(false);
+        navigate('/login');
+      }, 1200);
+    }
   };
 
   // Mock Data for Customer Network
@@ -771,8 +824,7 @@ export default function LandingPage() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className={`bg-slate-50 text-slate-800 min-h-screen p-4 sm:p-6 relative font-sans w-full pb-16 transition-all duration-300 safe-top safe-bottom safe-left safe-right ${activeModal ? 'overflow-hidden' : 'overflow-y-auto'
-        }`}
+      className="bg-slate-50 text-slate-800 min-h-screen p-4 sm:p-6 relative font-sans w-full pb-16 transition-all duration-300 safe-top safe-bottom safe-left safe-right"
     >
 
       {/* Background decorative grids */}
@@ -822,31 +874,33 @@ export default function LandingPage() {
       <div className="max-w-[480px] mx-auto relative z-10 space-y-6">
 
         {/* HEADER BAR */}
-        <header className="sticky top-0 z-20 flex justify-between items-center bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-4 shadow-sm animate-fade-in-down">
+        <header className="sticky top-4 sm:top-6 z-20 flex justify-between items-center bg-white/60 backdrop-blur-3xl border border-white rounded-2xl p-4 shadow-sm animate-fade-in-down">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8.5 h-8.5 rounded-lg bg-white flex items-center justify-center shadow-md overflow-hidden">
-              <img src={logo} alt="Plumber SFA Logo" className="w-full h-full object-cover" />
+            <div className="w-8.5 h-8.5 rounded-lg   bg-white flex items-center justify-center shadow-md shadow-black-500 overflow-hidden">
+              <img src={logo} alt="Plumber SFA Logo" className="w-full h-full object-cover " />
             </div>
             <div>
               <span className="text-xs font-bold text-slate-800 block">Plumber SFA</span>
-              <span className="text-[10px] text-slate-400 font-semibold">{formatPhoneDisplay(userPhone)}</span>
+              <span className="text-[10px] text-black-500 font-semibold">{formatPhoneDisplay(userPhone)}</span>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => alert('Notifications: Daily visits route synchronized.')}
-              className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-lg relative text-slate-500 focus:outline-none transition-colors"
+              onClick={() => navigate('/dashboard/notifications')}
+              className="p-2 bg-slate-50 hover:bg-slate-100 border border-blue-400 rounded-lg relative text-slate-500 focus:outline-none transition-colors cursor-pointer"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-500 rounded-full"></span>
+              {notifications.some(n => !n.read) && (
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-500 rounded-full"></span>
+              )}
             </button>
 
             <button
               onClick={handleLogoutClick}
-              className="px-3 py-2 bg-slate-50 hover:bg-rose-50 border border-slate-100 hover:border-rose-100 rounded-lg text-xs font-bold text-slate-600 hover:text-rose-600 transition-all duration-200 cursor-pointer"
+              className="px-3 py-2 bg-rose-50  border-2 border-rose-200 rounded-lg text-xs font-bold text-rose-600 transition-all duration-200 cursor-pointer"
             >
               Logout
             </button>
@@ -860,7 +914,7 @@ export default function LandingPage() {
             transition: isPulling ? 'none' : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          <Outlet context={{ setActiveModal, isClockedIn }} />
+          <Outlet context={{ setActiveModal, isClockedIn, notifications, setNotifications }} />
         </div>
 
       </div>
@@ -978,11 +1032,9 @@ export default function LandingPage() {
             <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-              className="w-14 h-14 rounded-2xl bg-brand-600 flex items-center justify-center shadow-lg"
+              className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-lg overflow-hidden"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-7 w-7 text-white">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.625c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 18.75v-5.625zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.125c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.625c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
-              </svg>
+              <img src={logo} alt="Plumber SFA Logo" className="w-full h-full object-cover" />
             </motion.div>
             <div className="text-center space-y-1.5">
               <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">Ending SFA Session</h3>

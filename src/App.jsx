@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
 import DashboardHome from './pages/DashboardHome';
 import UserPage from './pages/UserPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 import { Capacitor } from '@capacitor/core';
 import { App as AppPlugin } from '@capacitor/app';
@@ -73,6 +74,7 @@ function App() {
           <Route path="/dashboard" element={<LandingPage />}>
             <Route index element={<DashboardHome />} />
             <Route path="user" element={<UserPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
